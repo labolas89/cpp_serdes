@@ -374,7 +374,7 @@ public:
 			return type_name<Tp>();
 #else
 		UNUSED(src);
-		return std::string();
+		return type_name<Tp>();
 #endif
 	}
 
