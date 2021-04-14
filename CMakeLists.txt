@@ -5,11 +5,15 @@ project(TEST_SERDES)
 # Require c++14 minimum
 
 if(MSVC)
-    add_compile_options("/std:c++14" "$<$<CONFIG:RELEASE>:/O2>")
+    add_compile_options("$<$<CONFIG:RELEASE>:/O2>")
+    add_compile_options("/std:c++14" "/Zc:__cplusplus")
+    #add_compile_options("/std:c++latest" "/Zc:__cplusplus" "/experimental:module") # testing
     add_compile_options("/W4")
 else()
-    add_compile_options("-std=c++14" "$<$<CONFIG:RELEASE>:-O3>")
-    add_compile_options("-Wall" "-Wextra" "-Werror")
+    add_compile_options("-std=c++14")
+    #add_compile_options("-std=c++2a") # testing
+    add_compile_options("$<$<CONFIG:RELEASE>:-O3>" "-Wall" "-Wextra" "-Werror")
+    
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         add_compile_options("-stdlib=libc++")
     else()

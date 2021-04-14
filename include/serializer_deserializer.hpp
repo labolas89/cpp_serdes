@@ -9,6 +9,9 @@
 #include <type_traits>
 #include <string>
 #include <typeinfo>
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif // !__GNUC__
 
 namespace serdes {
 
@@ -232,10 +235,11 @@ public:
 	template<typename Tp>
 	static inline constexpr std::enable_if_t<serdes::is_c_string_v<std::decay_t<Tp>>,
 		size_t> deserialize(Tp& c_str, deser_src ptr) {
+		using raw_Tp = typename std::remove_pointer<Tp>::type;
 		auto elem_nums = extract<uint32_t>(ptr);
 		constexpr size_t cursor = sizeof(uint32_t);
 		if (c_str) delete c_str;
-		c_str = new Tp[elem_nums + 1];
+		c_str = new raw_Tp[elem_nums + 1];
 		memcpy(c_str, ptr + cursor, elem_nums);
 		c_str[elem_nums] = '\0';
 		return cursor + elem_nums;
@@ -270,7 +274,33 @@ public:
 
 	template<typename Tp>
 	static inline constexpr std::enable_if_t<
-		serdes::is_container_v<std::decay_t<Tp>> ||
+		(!std::is_same<std::string, std::decay_t<Tp>>::value) &&
+		serdes::is_container_v<std::decay_t<Tp>>,
+		std::string> to_string(const Tp& vec) {
+		std::string ret = "{";
+		size_t repeat = 0;
+		for (auto& elem : vec) {
+			if (repeat++ < to_string_repeat_limit)
+				ret += to_string(elem) + (repeat != vec.size() ? ", " : "");
+			else {
+				ret += "...";
+				break;
+			}
+		}
+		ret += "}";
+		return ret;
+	}
+
+	template<typename Tp>
+	static inline constexpr std::enable_if_t<
+		std::is_same<std::string, std::decay_t<Tp>>::value &&
+		serdes::is_container_v<std::decay_t<Tp>>,
+		std::string> to_string(const Tp& vec) {
+		return std::string("\"" + vec + "\"");
+	}
+
+	template<typename Tp>
+	static inline constexpr std::enable_if_t<
 		serdes::is_std_array_v<std::decay_t<Tp>>,
 		std::string> to_string(const Tp& vec) {
 		std::string ret = "{";
@@ -305,28 +335,52 @@ public:
 		return std::to_string(src);
 	}
 
+#if _CXXABI_H
+	template<typename Tp>
+	static inline constexpr std::string type_name() {
+		std::string ret("UNKOWN_TYPE");
+		int status = 0;
+		char *realname = abi::__cxa_demangle(typeid(Tp).name(), nullptr, nullptr, &status);
+		if (status != 0) {
+			assert(status == 0 && "__cxa_demangle fail");
+			return ret;
+		}
+		ret = std::string(realname);
+		free(realname);
+		return ret;
+	}
+#else
+	template<typename Tp>
+	static inline constexpr std::string type_name() {
+		return typeid(Tp).name();
+	}
+#endif
+
 	template<typename Tp>
 	static inline constexpr std::enable_if_t<!is_serdes_special<Tp> && !std::is_arithmetic<Tp>::value,
 		std::string> to_string(const Tp& src) {
-		UNUSED(src);
 		// require c++20 
-		//		GCC 9.0.0	: 201709L. for C++2a.
+		//		GCC 9.0.0	: 201709L. for C++2a. (tested)
 		//		Clang 8.0.0	: 201707L.
 		//		VC++ 15.9.3	: 201704L.
-#if __cplusplus > 201703L && (defined(__GNUC__) ? __GNUC__ > 8 : true)
+#if ((__cplusplus > 201703L) && \
+	 ((defined(_MSC_VER) && defined(__cpp_consteval)) || \
+      (defined(__GNUC__) ? __GNUC__ > 8 : true)))
 		auto&& tup = to_tuple(src);
 		if constexpr (std::tuple_size<std::decay_t<decltype(tup)>>::value > 0) {
 			return to_string(tup);
 		}
 		else // cannot convert structure to tuple
-			return typeid(Tp).name();
+			return type_name<Tp>();
 #else
-		return typeid(Tp).name();
+		UNUSED(src);
+		return std::string();
 #endif
 	}
 
-#if __cplusplus > 201703L && (defined(__GNUC__) ? __GNUC__ > 8 : true)
-
+#if ((__cplusplus > 201703L) && \
+	 ((defined(_MSC_VER) && defined(__cpp_consteval)) || \
+      (defined(__GNUC__) ? __GNUC__ > 8 : true)))
 private:
 	struct any {
 		template<class T>
@@ -335,7 +389,7 @@ private:
 
 public:
 	template<typename T>
-	consteval auto member_count(auto ...member) {
+	static consteval auto member_count(auto&& ...member) {
 		if constexpr (requires{ T{ member... }; } == false)
 			return sizeof...(Members) - 1;
 		else
