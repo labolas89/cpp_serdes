@@ -1,6 +1,6 @@
 
 #include "serializer_deserializer.hpp"
-#include <stdio.h>
+#include <iostream>
 #include <cstring>
 #include <typeinfo>
 #include <list>
@@ -184,6 +184,23 @@ static_assert(!SerDesLittle::is_serdesable_v<COMPLEX_X2>, "");
 
 int main() 
 {
+	using target_type = typename std::tuple<std::string, std::vector<int>, double>;
+	static_assert(SerDesLittle::is_serdesable_v<target_type>, "cannot convert");
+	std::vector<uint8_t> serial_buffer;
+	{	
+		target_type src = std::make_tuple("source", std::vector<int>{1, 2, 3}, 4.0);
+		serial_buffer.resize(SerDesLittle::payload_size(src));
+		size_t serialize_size = SerDesLittle::serialize(serial_buffer.data(), src);
+		assert(serial_buffer.size() == serialize_size && "converting size error");
+	}
+	{
+		target_type dest;
+		size_t deserialize_size = SerDesLittle::deserialize(dest, serial_buffer.data());
+		assert(serial_buffer.size() == deserialize_size && "converting size error");
+		std::cout << "deserialize[" << SerDesLittle::to_string(deserialize_size) << "] <" << 
+			SerDesLittle::type_name<decltype(dest)>() << "> :" <<
+			SerDesLittle::to_string(dest) << std::endl;
+	}
 	
 	//----------------------------------------------------------------------------------------------------
 	{
