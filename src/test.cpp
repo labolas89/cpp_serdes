@@ -184,22 +184,49 @@ static_assert(!SerDesLittle::is_serdesable_v<COMPLEX_X2>, "");
 
 int main() 
 {
+	// Decide what type to serialize/deserialize.
 	using target_type = typename std::tuple<std::string, std::vector<int>, double>;
+
+	// Determine serialization/deserialization is possible at compile time. 
+	// Applicable in type trait.
 	static_assert(SerDesLittle::is_serdesable_v<target_type>, "cannot convert");
+
+	// Define a buffer to store serialized data.
+	// It means data to be transmitted through the outside of the function or communication interface
 	std::vector<uint8_t> serial_buffer;
-	{	
+	{
+		// Insert data to be transmitted in a predefined data type variable.
 		target_type src = std::make_tuple("source", std::vector<int>{1, 2, 3}, 4.0);
+
+		// Calculate the payload size of the data inserted above.
+		// Next, the serialization buffer is dynamically allocated.
 		serial_buffer.resize(SerDesLittle::payload_size(src));
+
+		// Perform serialization.
 		size_t serialize_size = SerDesLittle::serialize(serial_buffer.data(), src);
+
+		// Compare buffer size and serialized size. 
+		// This step can be omitted.
 		assert(serial_buffer.size() == serialize_size && "converting size error");
 	}
 	{
+		// Define a variable to receive deserialization data.
 		target_type dest;
+
+		// Perform deserialization from serialized data.
+		// Only dynamically allocated (vector, etc.) buffer size-related information 
+		// is separately serialized and included.
 		size_t deserialize_size = SerDesLittle::deserialize(dest, serial_buffer.data());
+
+		// Compare buffer size and deserialized size.
+		// This step can be omitted.
 		assert(serial_buffer.size() == deserialize_size && "converting size error");
-		std::cout << "deserialize[" << SerDesLittle::to_string(deserialize_size) << "] <" << 
+
+		// Output data to the console to check the result.
+		// Easily printable by using the following function.
+		std::cout << "deserialize[" << SerDesLittle::to_string(deserialize_size) << "] <" <<
 			SerDesLittle::type_name<decltype(dest)>() << "> :" <<
-			SerDesLittle::to_string(dest) << std::endl;
+			SerDesLittle::to_string(dest) << std::endl << std::endl;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -255,14 +282,13 @@ int main()
 		int compare = memcmp(buf[0].data(), buf[1].data(), buf_size);
 
 		if (compare != 0) {
-			printf("buf[%u] : %d compare fail\n", (uint32_t)buf_size, compare);
+			printf("buf[%u] : %d compare fail\n\n", (uint32_t)buf_size, compare);
 			for (size_t idx = 0; idx < buf_size; idx++)
 				printf("{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
 			printf("\n");
-			//return EXIT_FAILURE;
 		}
 		else
-			printf("buf[%u] : %d compare pass\n", (uint32_t)buf_size, compare);
+			printf("buf[%u] : %d compare pass\n\n", (uint32_t)buf_size, compare);
 
 	}
 
@@ -326,14 +352,14 @@ int main()
 		int compare = memcmp(buf[0].data(), buf[1].data(), buf_size);
 
 		if (compare != 0) {
-			printf("buf[%u] : %d compare fail\n", (uint32_t)buf_size, compare);
+			printf("buf[%u] : %d compare fail\n\n", (uint32_t)buf_size, compare);
 			for (size_t idx = 0; idx < buf_size; idx++)
 				printf("{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
 			printf("\n");
 			return EXIT_FAILURE;
 		}
 		else
-			printf("buf[%u] : %d compare pass\n", (uint32_t)buf_size, compare);
+			printf("buf[%u] : %d compare pass\n\n", (uint32_t)buf_size, compare);
 
 	}
     
