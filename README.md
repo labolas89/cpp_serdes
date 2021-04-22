@@ -52,7 +52,7 @@ std::vector<uint8_t> serial_buffer;
 	assert(serial_buffer.size() == deserialize_size && "converting size error");
     
 	// Output data to the console to check the result.
-    // Easily printable by using the following function.
+	// Easily printable by using the following function.
 	std::cout << "deserialize[" << SerDesLittle::to_string(deserialize_size) << "] <" << 
 		SerDesLittle::type_name<decltype(dest)>() << "> :" <<
 		SerDesLittle::to_string(dest) << std::endl;
