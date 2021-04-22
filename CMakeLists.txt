@@ -41,3 +41,7 @@ add_executable(${CMAKE_PROJECT_NAME}
     ${SRC_LIST}
 )
 
+include (CTest)
+add_test(test-0 TEST_SERDES)
+
+

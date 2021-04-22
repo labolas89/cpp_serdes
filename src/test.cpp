@@ -229,6 +229,8 @@ int main()
 			SerDesLittle::to_string(dest) << std::endl << std::endl;
 	}
 	
+	int ret = EXIT_SUCCESS;
+
 	//----------------------------------------------------------------------------------------------------
 	{
 		
@@ -286,6 +288,7 @@ int main()
 			for (size_t idx = 0; idx < buf_size; idx++)
 				printf("{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
 			printf("\n");
+			ret = EXIT_FAILURE;
 		}
 		else
 			printf("buf[%u] : %d compare pass\n\n", (uint32_t)buf_size, compare);
@@ -356,12 +359,12 @@ int main()
 			for (size_t idx = 0; idx < buf_size; idx++)
 				printf("{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
 			printf("\n");
-			return EXIT_FAILURE;
+			ret = EXIT_FAILURE;
 		}
 		else
 			printf("buf[%u] : %d compare pass\n\n", (uint32_t)buf_size, compare);
 
 	}
     
-    return EXIT_FAILURE;
+    return ret;
 }
