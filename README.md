@@ -91,3 +91,7 @@ buf[736] : 0 compare pass
 
 $
 ```
+
+User-written structures or classes are not yet parsed by the to_string function.
+When the compilers fully support C++20 features, will try to improve them.
+
