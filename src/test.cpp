@@ -208,6 +208,8 @@ int main()
 		// Compare buffer size and serialized size. 
 		// This step can be omitted.
 		assert(serial_buffer.size() == serialize_size && "converting size error");
+
+		std::cout << "serialize_size : " << SerDesLittle::to_string(serialize_size) << " byte" << std::endl;
 	}
 	{
 		// Define a variable to receive deserialization data.
