@@ -259,7 +259,7 @@ int main()
 
 		// initialize zero & buf_size
 		// for byte-compare(memcmp) with none bytepack struct
-		std::vector<uint8_t> buf[2] = { std::vector<uint8_t>(0, buf_size), };
+		std::vector<uint8_t> buf[2] = { std::vector<uint8_t>(0, buf_size), std::vector<uint8_t>(0, buf_size) };
 
 		// setting buffer
 		buf[0].resize(buf_size);
@@ -330,7 +330,7 @@ int main()
 
 		// initialize zero & buf_size
 		// for byte-compare(memcmp) with none bytepack struct
-		std::vector<uint8_t> buf[2] = { std::vector<uint8_t>(0, buf_size), };
+		std::vector<uint8_t> buf[2] = { std::vector<uint8_t>(0, buf_size), std::vector<uint8_t>(0, buf_size) };
 
 		// setting buffer
 		buf[0].resize(buf_size);
