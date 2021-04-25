@@ -49,7 +49,7 @@ static_assert(!SerDesLittle::is_serdesable_v<triviallyUncopyableStruct>, "");
 //----------------------------------------------------------------------------------------------------
 
 // pragma pack SERDES no problem
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 struct bytePackStruct {
 	char					s8;
 	unsigned char			u8;
@@ -58,7 +58,7 @@ struct bytePackStruct {
 	int						s32;
 	double					f64;
 };
-#pragma pack(pop)
+//#pragma pack(pop)
 
 static_assert(SerDesLittle::is_serdesable_v<bytePackStruct>, "");
 //----------------------------------------------------------------------------------------------------
