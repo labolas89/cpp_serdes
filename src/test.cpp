@@ -49,7 +49,7 @@ static_assert(!SerDesLittle::is_serdesable_v<triviallyUncopyableStruct>, "");
 //----------------------------------------------------------------------------------------------------
 
 // pragma pack SERDES no problem
-//#pragma pack(push, 1)
+#pragma pack(push, 1)
 struct bytePackStruct {
 	char					s8;
 	unsigned char			u8;
@@ -58,7 +58,7 @@ struct bytePackStruct {
 	int						s32;
 	double					f64;
 };
-//#pragma pack(pop)
+#pragma pack(pop)
 
 static_assert(SerDesLittle::is_serdesable_v<bytePackStruct>, "");
 //----------------------------------------------------------------------------------------------------
@@ -268,7 +268,7 @@ int main()
 		SerDesLittle::serialize(buf[0].data(), serial_src);
 
 		// run deserialization buffer to complex structure
-		SerDesLittle::deserialize(deserial_dst, buf[0].data());
+		size_t deserialize_size = SerDesLittle::deserialize(deserial_dst, buf[0].data());
 
 		printf("<%s> : %s\n",
 			SerDesLittle::type_name<decltype(deserial_dst)>().c_str(),
@@ -280,19 +280,27 @@ int main()
 		buf[1].resize(buf_size);
 
 		// run serialization to another buffer
-		SerDesLittle::serialize(buf[1].data(), deserial_dst);
+		size_t serialize_size = SerDesLittle::serialize(buf[1].data(), deserial_dst);
+		
+		ret |= deserialize_size != serialize_size ? EXIT_FAILURE : EXIT_SUCCESS;
 
 		// check byte error
 		int compare = memcmp(buf[0].data(), buf[1].data(), buf_size);
 
 		if (compare != 0) {
 			printf("buf[%u] : %d compare fail\n\n", (uint32_t)buf_size, compare);
+
+			printf("<%s> : %s\n",
+				SerDesLittle::type_name<decltype(serial_src)>().c_str(),
+				SerDesLittle::to_string(serial_src).c_str() // Easy String Converter
+				// In-class/structure parsing is supported by std:c++20, but not perfect
+			);
+
 			for (size_t idx = 0; idx < buf_size; idx++) {
 				if (buf[0].data()[idx] != buf[1].data()[idx])
 					printf("[%u]{%hu:%hu} ", (uint32_t)idx, buf[0].data()[idx], buf[1].data()[idx]);
 			}
 			printf("\n");
-			ret = EXIT_FAILURE;
 		}
 		else
 			printf("buf[%u] : %d compare pass\n\n", (uint32_t)buf_size, compare);
@@ -341,7 +349,7 @@ int main()
 		SerDesLittle::serialize(buf[0].data(), serial_src);
 
 		// run deserialization buffer to complex structure
-		SerDesLittle::deserialize(deserial_dst, buf[0].data());
+		size_t deserialize_size = SerDesLittle::deserialize(deserial_dst, buf[0].data());
 
 		printf("<%s> : %s\n",
 			SerDesLittle::type_name<decltype(deserial_dst)>().c_str(),
@@ -353,19 +361,27 @@ int main()
 		buf[1].resize(buf_size);
 
 		// run serialization to another buffer
-		SerDesLittle::serialize(buf[1].data(), deserial_dst);
+		size_t serialize_size = SerDesLittle::serialize(buf[1].data(), deserial_dst);
 
 		// check byte error
 		int compare = memcmp(buf[0].data(), buf[1].data(), buf_size);
 
-		if (compare != 0) {
+		ret |= deserialize_size != serialize_size ? EXIT_FAILURE : EXIT_SUCCESS;
+
+		if (compare != 0) { // error in github actions.. with lastest ubuntu
 			printf("buf[%u] : %d compare fail\n\n", (uint32_t)buf_size, compare);
+
+			printf("<%s> : %s\n",
+				SerDesLittle::type_name<decltype(serial_src)>().c_str(),
+				SerDesLittle::to_string(serial_src).c_str() // Easy String Converter
+				// In-class/structure parsing is supported by std:c++20, but not perfect
+			);
+
 			for (size_t idx = 0; idx < buf_size; idx++) {
 				if (buf[0].data()[idx] != buf[1].data()[idx])
 					printf("[%u]{%hu:%hu} ", (uint32_t)idx, buf[0].data()[idx], buf[1].data()[idx]);
 			}
 			printf("\n");
-			ret = EXIT_FAILURE;
 		}
 		else
 			printf("buf[%u] : %d compare pass\n\n", (uint32_t)buf_size, compare);
