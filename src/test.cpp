@@ -287,8 +287,10 @@ int main()
 
 		if (compare != 0) {
 			printf("buf[%u] : %d compare fail\n\n", (uint32_t)buf_size, compare);
-			for (size_t idx = 0; idx < buf_size; idx++)
-				printf("{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
+			for (size_t idx = 0; idx < buf_size; idx++) {
+				if (buf[0].data()[idx] != buf[1].data()[idx])
+					printf("[idx]{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
+			}
 			printf("\n");
 			ret = EXIT_FAILURE;
 		}
@@ -358,8 +360,10 @@ int main()
 
 		if (compare != 0) {
 			printf("buf[%u] : %d compare fail\n\n", (uint32_t)buf_size, compare);
-			for (size_t idx = 0; idx < buf_size; idx++)
-				printf("{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
+			for (size_t idx = 0; idx < buf_size; idx++) {
+				if (buf[0].data()[idx] != buf[1].data()[idx])
+					printf("[idx]{%hu:%hu} ", buf[0].data()[idx], buf[1].data()[idx]);
+			}
 			printf("\n");
 			ret = EXIT_FAILURE;
 		}
